@@ -1,0 +1,10 @@
+[package]
+name = "pinterest_login"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chromiumoxide = "0.5.0"
+async-std = "1.12.0"
