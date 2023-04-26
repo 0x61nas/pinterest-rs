@@ -66,6 +66,8 @@ use async_std::prelude::StreamExt;
 use chromiumoxide::Browser;
 use crate::config_builder::BrowserConfigBuilder;
 use crate::login_bot::BrowserLoginBot;
+#[cfg(feature = "debug")]
+use log::{info, trace, debug};
 
 /// The pinterest login url
 pub const PINTEREST_LOGIN_URL: &str = "https://pinterest.com/login";
@@ -113,7 +115,13 @@ pub type Result<T> = std::result::Result<T, PinterestLoginError>;
 #[inline]
 pub async fn login(login_bot: &dyn BrowserLoginBot, config_builder: &dyn BrowserConfigBuilder)
                    -> Result<HashMap<String, String>> {
-    let (browser, mut handler) = Browser::launch(config_builder.build_browser_config()?).await?;
+    #[cfg(feature = "debug")]
+    info!("Launching the browser");
+
+    let (mut browser, mut handler) = Browser::launch(config_builder.build_browser_config()?).await?;
+
+    #[cfg(feature = "debug")]
+    info!("The browser has been launched\nBrowser version: {:?}", browser.version().await?);
 
     let handle = async_std::task::spawn(async move {
         loop {
@@ -121,27 +129,67 @@ pub async fn login(login_bot: &dyn BrowserLoginBot, config_builder: &dyn Browser
         }
     });
 
+    #[cfg(feature = "debug")]
+    info!("Navigating to the login page: {}", PINTEREST_LOGIN_URL);
+    
     let page = browser.new_page(PINTEREST_LOGIN_URL).await?;
+    page.wait_for_navigation().await?;
 
+    #[cfg(feature = "debug")] {
+        info!("The login page has been loaded");
+        trace!("The login page content: {}", page.content().await?);
+        debug!("The login page cookies: {:?}", page.get_cookies().await?);
+        info!("Filling the login form");
+    }
     // Fill the login form
     login_bot.fill_login_form(&page).await?;
+    #[cfg(feature = "debug")]
+    info!("Submitting the login form");
     // Click the login button
     login_bot.submit_login_form(&page).await?;
+    
+    #[cfg(feature = "debug")] {
+        info!("The login form has been submitted");
+        info!("Waiting for the login to complete, and checking if the login was successful");
+    }
     // Check if the login was successful
     login_bot.check_login(&page).await?;
 
 
     let mut cookies = HashMap::with_capacity(5);
 
+    #[cfg(feature = "debug")]
+    info!("The login was successful, getting the cookies");
     // Get the cookies
     let c = page.get_cookies().await?;
+    
+    #[cfg(feature = "debug")] {
+        info!("The cookies have been retrieved");
+        debug!("The cookies: {c:?}");
+        debug!("The cookies length: {}", c.len());
+    }
 
+    #[cfg(feature = "debug")]
+    info!("Collecting the cookies values and names into a HashMap");
     for cookie in c {
+        #[cfg(feature = "debug")]
+        trace!("Inserting the cookie: {} : {}", cookie.name, cookie.value);
+        
         cookies.insert(cookie.name, cookie.value);
     }
 
+    #[cfg(feature = "debug")]
+    info!("Canceling the event handler");
     // Cancel the event handler
     handle.cancel().await;
 
+    #[cfg(feature = "debug")]
+    info!("Closing the browser");
+    // Close the browser
+    browser.close().await?;
+    
+    #[cfg(feature = "debug")]
+    trace!("The cookies: {cookies:?}");
+    
     Ok(cookies)
 }

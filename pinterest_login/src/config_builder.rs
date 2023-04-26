@@ -1,5 +1,7 @@
 use chromiumoxide::BrowserConfig;
 use crate::PinterestLoginError;
+#[cfg(feature = "debug")]
+use log::{info, trace, debug};
 
 /// The browser config builder trait, that provides a method to build a chromiumoxide browser config
 /// You can implement this trait for your own struct, and use it to build a chromiumoxide browser config
@@ -65,6 +67,12 @@ impl DefaultBrowserConfigBuilder {
 impl BrowserConfigBuilder for DefaultBrowserConfigBuilder {
     #[inline(always)]
     fn build_browser_config(&self) -> crate::Result<BrowserConfig> {
+        #[cfg(feature = "debug")] {
+            debug!("Building browser config");
+            trace!("Headless: {}", self.headless);
+            trace!("Request timeout: {:?}", self.request_timeout);
+            trace!("Launch timeout: {:?}", self.launch_timeout);
+        }
         let mut browser_config_builder = if self.headless {
             BrowserConfig::builder()
         } else {
@@ -72,11 +80,22 @@ impl BrowserConfigBuilder for DefaultBrowserConfigBuilder {
         };
 
         if let Some(timeout) = self.request_timeout {
+            #[cfg(feature = "debug")] {
+                trace!("Setting request timeout to {:?}", timeout);
+            }
             browser_config_builder = browser_config_builder.request_timeout(timeout);
         }
 
         if let Some(timeout) = self.launch_timeout {
+            #[cfg(feature = "debug")] {
+                trace!("Setting launch timeout to {:?}", timeout);
+            }
             browser_config_builder = browser_config_builder.launch_timeout(timeout);
+        }
+        
+        #[cfg(feature = "debug")] {
+            info!("Built browser config");
+            trace!("Browser config: {:?}", browser_config_builder);
         }
 
         browser_config_builder.build().map_err(PinterestLoginError::BrowserConfigBuildError)
