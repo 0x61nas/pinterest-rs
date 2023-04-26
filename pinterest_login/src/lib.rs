@@ -1,4 +1,5 @@
 pub mod config_builder;
+pub mod login_bot;
 
 use std::collections::HashMap;
 use std::time::Duration;
@@ -21,12 +22,6 @@ pub enum PinterestLoginError {
 
 /// A type alias for `Result<T, PinterestLoginError>`
 pub type Result<T> = std::result::Result<T, PinterestLoginError>;
-
-
-pub trait BrowserLoginBot {
-    fn fill_login_form(&self) -> Result<()>;
-    fn submit_login_form(&self) -> Result<()>;
-}
 
 /// Logs into Pinterest and returns the cookies as a HashMap
 ///
