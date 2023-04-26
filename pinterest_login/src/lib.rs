@@ -62,7 +62,9 @@ pub mod config_builder;
 pub mod login_bot;
 
 use std::collections::HashMap;
-use async_std::prelude::StreamExt;
+// #[cfg(feature = "async-std-runtime")]
+// use async_std::prelude::StreamExt;
+use futures::StreamExt;
 use chromiumoxide::Browser;
 use crate::config_builder::BrowserConfigBuilder;
 use crate::login_bot::BrowserLoginBot;
@@ -118,12 +120,20 @@ pub async fn login(login_bot: &dyn BrowserLoginBot, config_builder: &dyn Browser
     #[cfg(feature = "debug")]
     info!("Launching the browser");
 
-    let (mut browser, mut handler) = Browser::launch(config_builder.build_browser_config()?).await?;
+    let (browser, mut handler) = Browser::launch(config_builder.build_browser_config()?).await?;
 
     #[cfg(feature = "debug")]
     info!("The browser has been launched\nBrowser version: {:?}", browser.version().await?);
 
+    #[cfg(feature = "async-std-runtime")]
     let handle = async_std::task::spawn(async move {
+        loop {
+            let _event = handler.next().await;
+        }
+    });
+
+    #[cfg(all(feature = "tokio-runtime", not(feature = "async-std-runtime")))]
+    let handle = tokio::spawn(async move {
         loop {
             let _event = handler.next().await;
         }
@@ -131,7 +141,7 @@ pub async fn login(login_bot: &dyn BrowserLoginBot, config_builder: &dyn Browser
 
     #[cfg(feature = "debug")]
     info!("Navigating to the login page: {}", PINTEREST_LOGIN_URL);
-    
+
     let page = browser.new_page(PINTEREST_LOGIN_URL).await?;
     page.wait_for_navigation().await?;
 
@@ -147,7 +157,7 @@ pub async fn login(login_bot: &dyn BrowserLoginBot, config_builder: &dyn Browser
     info!("Submitting the login form");
     // Click the login button
     login_bot.submit_login_form(&page).await?;
-    
+
     #[cfg(feature = "debug")] {
         info!("The login form has been submitted");
         info!("Waiting for the login to complete, and checking if the login was successful");
@@ -162,7 +172,7 @@ pub async fn login(login_bot: &dyn BrowserLoginBot, config_builder: &dyn Browser
     info!("The login was successful, getting the cookies");
     // Get the cookies
     let c = page.get_cookies().await?;
-    
+
     #[cfg(feature = "debug")] {
         info!("The cookies have been retrieved");
         debug!("The cookies: {c:?}");
@@ -174,22 +184,26 @@ pub async fn login(login_bot: &dyn BrowserLoginBot, config_builder: &dyn Browser
     for cookie in c {
         #[cfg(feature = "debug")]
         trace!("Inserting the cookie: {} : {}", cookie.name, cookie.value);
-        
+
         cookies.insert(cookie.name, cookie.value);
     }
 
     #[cfg(feature = "debug")]
     info!("Canceling the event handler");
+    #[cfg(feature = "async-std-runtime")]
     // Cancel the event handler
     handle.cancel().await;
+    #[cfg(all(feature = "tokio-runtime", not(feature = "async-std-runtime")))]
+    // Cancel the event handler
+    handle.abort();
+
+    // #[cfg(feature = "debug")]
+    // info!("Closing the browser");
+    // Close the browser
+    // browser.close().await?;
 
     #[cfg(feature = "debug")]
-    info!("Closing the browser");
-    // Close the browser
-    browser.close().await?;
-    
-    #[cfg(feature = "debug")]
     trace!("The cookies: {cookies:?}");
-    
+
     Ok(cookies)
 }
