@@ -13,11 +13,11 @@ use crate::{PINTEREST_LOGIN_URL, PinterestLoginError};
 ///
 /// #[async_trait::async_trait]
 /// impl BrowserLoginBot for MyLoginBot {
-///    async fn fill_login_form(&self, page: &mut Page) -> crate::Result<()> {
+///    async fn fill_login_form(&self, page: &Page) -> crate::Result<()> {
 ///        // ...
 ///    }
 ///
-///    async fn submit_login_form(&self, page: &mut Page) -> crate::Result<()> {
+///    async fn submit_login_form(&self, page: &Page) -> crate::Result<()> {
 ///        // ...
 ///    }
 ///
@@ -29,9 +29,9 @@ use crate::{PINTEREST_LOGIN_URL, PinterestLoginError};
 #[async_trait::async_trait]
 pub trait BrowserLoginBot {
     /// Fills the login form fields with the required data
-    async fn fill_login_form(&self, page: &mut Page) -> crate::Result<()>;
+    async fn fill_login_form(&self, page: &Page) -> crate::Result<()>;
     /// Submits the login form
-    async fn submit_login_form(&self, page: &mut Page) -> crate::Result<()>;
+    async fn submit_login_form(&self, page: &Page) -> crate::Result<()>;
     /// Checks if the login was successful
     async fn check_login(&self, page: &Page) -> crate::Result<()>;
 }
@@ -72,7 +72,7 @@ impl<'a> DefaultBrowserLoginBot<'a> {
 #[async_trait::async_trait]
 impl BrowserLoginBot for DefaultBrowserLoginBot<'_> {
     #[inline(always)]
-    async fn fill_login_form(&self, page: &mut Page) -> crate::Result<()> {
+    async fn fill_login_form(&self, page: &Page) -> crate::Result<()> {
         // Wait for the page to load, and then find the email input field and fill it
         page.wait_for_navigation().await?
             .find_element("input#email").await?
@@ -87,7 +87,7 @@ impl BrowserLoginBot for DefaultBrowserLoginBot<'_> {
     }
 
     #[inline(always)]
-    async fn submit_login_form(&self, page: &mut Page) -> crate::Result<()> {
+    async fn submit_login_form(&self, page: &Page) -> crate::Result<()> {
         // Find the submit button and click it
         page.find_element("button[type='submit']").await?
             .click().await?;
