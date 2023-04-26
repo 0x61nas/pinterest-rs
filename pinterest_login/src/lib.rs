@@ -113,12 +113,17 @@ use log::{info, trace, debug};
 /// The pinterest login url
 pub const PINTEREST_LOGIN_URL: &str = "https://pinterest.com/login";
 
+/// Pinterest login error type
 #[derive(Debug, thiserror::Error)]
 pub enum PinterestLoginError {
+    /// Chromiumoxide error, returned when chromiumoxide fails to connect to the browser or when the browser fails to load the login page or when the timeout is reached
+    /// See [chromiumoxide::error::CdpError](https://docs.rs/chromiumoxide/latest/chromiumoxide/error/enum.CdpError.htm) for more details
     #[error("{0}")]
     CdpError(#[from] chromiumoxide::error::CdpError),
+    /// The browser config builder failed to build the browser config
     #[error("{0}")]
     BrowserConfigBuildError(String),
+    /// The login bot failed to fill or submit the login form, or the authentication is incorrect
     #[error("Authentication error: The email or password you entered is incorrect.")]
     AuthenticationError,
 }
