@@ -1,3 +1,63 @@
+//! Simple crate to login to Pinterest and get the cookies via chromiumoxide to simulate a browser (open a real browser actually)
+//!
+//! # Examples
+//! ```no_run
+//! use pinterest_login::config_builder::DefaultBrowserConfigBuilder;
+//! use pinterest_login::login;
+//! use pinterest_login::login_bot::DefaultBrowserLoginBot;
+//!
+//! #[async_std::main]
+//! async fn main() {
+//!     let email = std::env::var("PINTEREST_EMAIL").unwrap();
+//!     let password = std::env::var("PINTEREST_PASSWORD").unwrap();
+//!
+//!     let bot = DefaultBrowserLoginBot::new(email.as_str(), password.as_str());
+//!     let config_builder = DefaultBrowserConfigBuilder::default();
+//!
+//!     match login(&bot, &config_builder).await {
+//!         Ok(cookies) => {
+//!             // Store the cookies in a file or something, and do whatever you want with them
+//!             // I like the cookies bay the way
+//!             // ...
+//!             println!("{}", cookies.len());
+//!             println!("{:?}", cookies);
+//!         }
+//!         Err(e) => {
+//!             // The login was unsuccessful
+//!             eprintln!("The login was unsuccessful: {}", e);
+//!         }
+//!     };
+//! }
+//! ```
+//! ```no_run
+//! use pinterest_login::config_builder::DefaultBrowserConfigBuilder;
+//! use pinterest_login::login;
+//! use pinterest_login::login_bot::DefaultBrowserLoginBot;
+//! use std::time::Duration;
+//!
+//! #[async_std::main]
+//! async fn main() {
+//!     let email = std::env::var("PINTEREST_EMAIL").unwrap();
+//!     let password = std::env::var("PINTEREST_PASSWORD").unwrap();
+//!
+//!     let bot = DefaultBrowserLoginBot::new(email.as_str(), password.as_str());
+//!
+//!    // Show the browser, and set the request timeout to 2 seconds
+//!     let config_builder = DefaultBrowserConfigBuilder::new(false, Duration::from_secs(2).into(), None);
+//!
+//!     match login(&bot, &config_builder).await {
+//!         Ok(cookies) => {
+//!             // ...
+//!         }
+//!         Err(e) => {
+//!             // The login was unsuccessful
+//!             eprintln!("The login was unsuccessful: {}", e);
+//!         }
+//!     };
+//! }
+//! ```
+//!
+//! > This project is part of the [pinterest_rs](https://github.com/anas-elgarhy/pinterest_rs) project
 pub mod config_builder;
 pub mod login_bot;
 
