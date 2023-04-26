@@ -4,6 +4,7 @@ use std::time::Duration;
 use async_std::prelude::StreamExt;
 use chromiumoxide::{Browser, BrowserConfig};
 
+/// The pinterest login url
 pub const PINTEREST_LOGIN_URL: &str = "https://pinterest.com/login";
 
 #[derive(Debug, thiserror::Error)]
@@ -19,6 +20,47 @@ pub enum PinterestLoginError {
 /// A type alias for `Result<T, PinterestLoginError>`
 pub type Result<T> = std::result::Result<T, PinterestLoginError>;
 
+/// Logs into Pinterest and returns the cookies as a HashMap
+///
+/// # Arguments
+/// * `email` - The email to login with
+/// * `password` - The password to login with
+/// * `headless` - Whether to launch the browser in headless mode or not (you probably want this to be true)
+/// * `request_timeout` - The timeout for requests, the default is no timeout (you probably want to set this unless you want to wait forever if you take the internet from potato)
+/// * `lunch_timeout` - The timeout for launching the browser, the default is no timeout
+///
+/// # Example
+/// ```no_run
+/// use std::time::Duration;
+/// use pinterest_login::login;
+///
+/// #[async_std::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///    let email = std::env::var("PINTEREST_EMAIL").unwrap();
+///    let password = std::env::var("PINTEREST_PASSWORD").unwrap();
+///    match login(email.as_str(), password.as_str(), true,
+///                      Duration::from_secs(2).into(), Duration::from_secs(4).into()).await? {
+///       Ok(cookies) => {
+///         // Store the cookies in a file or something, and do whatever you want with them
+///         // I like the cookies bay the way
+///         // ...
+///         println!("{:?}", cookies);
+///         Ok(())
+///      }
+///     Err(e) => {
+///       // The login was unsuccessful
+///       eprintln!("The login was unsuccessful: {}", e);
+///      e
+///    }
+///  }
+/// }
+/// ```
+///
+/// # Errors
+/// * `CdpError` - If there is an error with chromiumoxide (like launching timeout, or request timeout, network error, etc.)  see [chromiumoxide::error::CdpError](https://docs.rs/chromiumoxide/latest/chromiumoxide/error/enum.CdpError.html) to see all the errors
+/// * `BrowserConfigBuildError` - If there is an error building the browser config
+/// * `AuthenticationError` - If the email or password is incorrect
+///
 pub async fn login(email: &str, password: &str, headless: bool, request_timeout: Option<Duration>, lunch_timeout: Option<Duration>)
                    -> Result<HashMap<String, String>> {
     let (browser, mut handler) = Browser::launch(
@@ -76,6 +118,15 @@ pub async fn login(email: &str, password: &str, headless: bool, request_timeout:
     Ok(cookies)
 }
 
+/// Builds the browser config (used internally, but I write the documentation anyway because I'm a good person =D (and I use GitHub copilot so I don't consume my valuable time)
+///
+/// # Arguments
+/// * `headless` - Whether to launch the browser in headless mode or not (you probably want this to be true)
+/// * `request_timeout` - The timeout for requests, the default is no timeout (you probably want to set this unless you want to wait forever if you take the internet from potato)
+/// * `lunch_timeout` - The timeout for launching the browser, the default is no timeout
+///
+/// # Errors
+/// * `BrowserConfigBuildError` - If there is an error building the browser config
 #[inline(always)]
 fn build_browser_config(headless: bool, request_timeout: Option<Duration>, lunch_timeout: Option<Duration>)
                         -> Result<BrowserConfig> {
