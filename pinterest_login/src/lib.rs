@@ -1,3 +1,5 @@
+pub mod config_builder;
+
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -19,6 +21,12 @@ pub enum PinterestLoginError {
 
 /// A type alias for `Result<T, PinterestLoginError>`
 pub type Result<T> = std::result::Result<T, PinterestLoginError>;
+
+
+pub trait BrowserLoginBot {
+    fn fill_login_form(&self) -> Result<()>;
+    fn submit_login_form(&self) -> Result<()>;
+}
 
 /// Logs into Pinterest and returns the cookies as a HashMap
 ///
@@ -61,6 +69,7 @@ pub type Result<T> = std::result::Result<T, PinterestLoginError>;
 /// * `BrowserConfigBuildError` - If there is an error building the browser config
 /// * `AuthenticationError` - If the email or password is incorrect
 ///
+#[inline]
 pub async fn login(email: &str, password: &str, headless: bool, request_timeout: Option<Duration>, lunch_timeout: Option<Duration>)
                    -> Result<HashMap<String, String>> {
     let (browser, mut handler) = Browser::launch(
