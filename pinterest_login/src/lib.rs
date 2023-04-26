@@ -57,7 +57,7 @@
 //! }
 //! ```
 //!
-//! > This project is part of the [pinterest_rs](https://github.com/anas-elgarhy/pinterest_rs) project
+//! > This project is part of the [pinterest_rs](https://github.com/anas-elgarhy/pinterest-rs) project
 pub mod config_builder;
 pub mod login_bot;
 
