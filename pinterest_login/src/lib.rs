@@ -1,6 +1,10 @@
 //! Simple crate to login to Pinterest and get the cookies via chromiumoxide to simulate a browser (open a real browser actually)
+//! Asynchronous, and uses async-std as the runtime by default (you can use tokio if you want)
 //!
 //! # Examples
+//!
+//! ## With the `async-std` runtime
+//!
 //! ```no_run
 //! use pinterest_login::config_builder::DefaultBrowserConfigBuilder;
 //! use pinterest_login::login;
@@ -56,6 +60,41 @@
 //!     };
 //! }
 //! ```
+//!
+//! ## With `tokio` runtime
+//! ```no_run
+//! use pinterest_login::config_builder::DefaultBrowserConfigBuilder;
+//! use pinterest_login::login;
+//! use pinterest_login::login_bot::DefaultBrowserLoginBot;
+//! use std::time::Duration;
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     let email = std::env::var("PINTEREST_EMAIL").unwrap();
+//!     let password = std::env::var("PINTEREST_PASSWORD").unwrap();
+//!
+//!    let bot = DefaultBrowserLoginBot::new(email.as_str(), password.as_str());
+//!
+//!   // Show the browser, and set the request timeout to 2 seconds
+//!    let config_builder = DefaultBrowserConfigBuilder::new(false, Duration::from_secs(2).into(), None);
+//!
+//!     match login(&bot, &config_builder).await {
+//!         Ok(cookies) => {
+//!             // ...
+//!         }
+//!         Err(e) => {
+//!             // The login was unsuccessful
+//!             eprintln!("The login was unsuccessful: {}", e);
+//!         }
+//!     };
+//! }
+//! ```
+//!
+//! # Features
+//! * `async-std-runtime`: Use the async-std runtime instead of tokio (enabled by default)
+//! * `tokio-runtime`: Use the tokio runtime instead of async-std
+//! * `debug`: Enable debug logging
+//!
 //!
 //! > This project is part of the [pinterest_rs](https://github.com/anas-elgarhy/pinterest-rs) project
 pub mod config_builder;
