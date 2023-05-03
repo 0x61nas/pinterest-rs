@@ -6,14 +6,22 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = "0.11"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_urlencoded = "0.7"
+urlencoding = "2"
+url = "2"
+thiserror = "1"
+cfg-if = "1"
 
+[dependencies.reqwest]
+version = "0.11"
+features = ["cookies"]
 
 [dependencies.pinterest_login]
 path = "./pinterest_login"
 default-features = false
+optional = true
 
 [dependencies.async-std]
 version = "1"
@@ -28,9 +36,11 @@ version = "0.4"
 optional = true
 
 [features]
-default = ["async-std-runtime"]
+default = ["async-std-runtime", "login"]
 async-std-runtime = ["async-std", "pinterest_login/async-std-runtime"]
 tokio-runtime = ["tokio", "pinterest_login/tokio-runtime"]
+login = ["pinterest_login"]
+credentials = []
 debug = ["log"]
 
 [workspace]
