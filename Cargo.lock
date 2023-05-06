@@ -1024,7 +1024,6 @@ name = "pinterest_rs"
 version = "0.1.0"
 dependencies = [
  "async-std",
- "cfg-if",
  "log",
  "pinterest_login",
  "reqwest",

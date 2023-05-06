@@ -12,7 +12,6 @@ serde_urlencoded = "0.7"
 urlencoding = "2"
 url = "2"
 thiserror = "1"
-cfg-if = "1"
 
 [dependencies.reqwest]
 version = "0.11"
